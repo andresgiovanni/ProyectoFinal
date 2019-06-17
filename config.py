@@ -1,0 +1,5 @@
+VAGRANTSERVICEHOME = "/home/admred/Proyecto/vagrant/"
+VAGRANTSLAVE1="127.0.0.1"
+SLAVE1PORT="8000"
+FILELOG="file.log"
+MSGlog="message.log"
