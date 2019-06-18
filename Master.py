@@ -9,6 +9,7 @@ import sys
 import opSlave
 import opJson
 import manageBD
+import time
 
 
 app = Flask(__name__)
@@ -32,7 +33,6 @@ def crearProyecto(proyecto):
         manageBD.addProyecto(proyecto)
         thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,config.VAGRANTSLAVE1))
         thread1.start()
-        thread1.join()
         return  jsonify("se inicia tarea")
     else:
         return jsonify("Error 400, no se ha subido VagranFile")    
@@ -41,11 +41,39 @@ def crearProyecto(proyecto):
 #Metodo para consultar estado de un proyecto
 @app.route("/estadoProyecto/<proyecto>")
 def estadoProyecto(proyecto):
-    ruta= config.VAGRANTSERVICEHOME + proyecto 
-    if os.path.isdir(ruta):
-        thread1= threading.Thread(target = opSlave.enviarEstadoProyecto, args=(proyecto,config.VAGRANTSLAVE1))
+#    ruta= config.VAGRANTSERVICEHOME + proyecto 
+#    if os.path.isdir(ruta):
+    if manageBD.buscarProyecto(proyecto)==True:
+        thread1= threading.Thread(target = opSlave.preguntarEstadoProyecto, args=(proyecto,config.VAGRANTSLAVE1))
         thread1.start()
-#        opSlave.enviarEstadoProyecto(proyecto,config.VAGRANTSLAVE1)
-        return jsonify()
+        while os.stat(config.MSGSlave).st_size == 0:
+            time.sleep(5)
+        return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
         return jsonify("Error 400, el proyecto no existe")
+
+
+#Metodo para Borrar un proyecto
+@app.route("/borrarProyecto/<proyecto>")
+def borrarProyecto(proyecto):
+    if manageBD.buscarProyecto(proyecto)==True:
+        opSlave.enviarBorrarProyecto(proyecto,config.VAGRANTSLAVE1)
+        while os.stat(config.MSGSlave).st_size == 0:
+            time.sleep(5)
+# <PENDIENTE CREAR METODO PARA BORAR BD DEL MASTER      >     
+        return jsonify(opJson.abrirArchivo(config.MSGSlave))
+    else:
+        return jsonify("Error 400, el proyecto no existe")  
+
+
+#Metodo para LEVANTAR  una VM de un proyecto
+@app.route("/levantarVM/<proyecto>/<VM>")
+def levantarVM(proyecto,VM):
+    if manageBD.buscarProyecto(proyecto)==True:
+        opSlave.enviarLevantarVM(proyecto,VM,config.VAGRANTSLAVE1)
+        while os.stat(config.MSGSlave).st_size == 0:
+            time.sleep(5)
+# <PENDIENTE CREAR METODO PARA CAMBIAR ESTADO VM EN BD DEL MASTER      >     
+        return jsonify(opJson.abrirArchivo(config.MSGSlave))
+    else:
+        return jsonify("Error 400, el proyecto no existe")  
