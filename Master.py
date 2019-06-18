@@ -8,6 +8,7 @@ import logging
 import sys
 import opSlave
 import opJson
+import manageBD
 
 
 app = Flask(__name__)
@@ -28,7 +29,7 @@ def crearProyecto(proyecto):
    # output=RunCLI.runCommand("cat %s"%(config.VAGRANTSERVICEHOME))
     ruta= config.VAGRANTSERVICEHOME + proyecto   
     if os.path.isdir(ruta):
-        
+        manageBD.addProyecto(proyecto)
         thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,config.VAGRANTSLAVE1))
         thread1.start()
         thread1.join()

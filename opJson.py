@@ -28,14 +28,15 @@ def verificarJson(ruta,f):
     return False    
 
 #Metodo generico para adicionar key a un archivo json existente
-def addLlave(f,key):
+def addLlave(f,estructura,nombre):
   data = {}
-  data = abrirArchivo(f)
+  if os.stat(f).st_size > 0:
+    data = abrirArchivo(f)
+#  obj=json.loads(llave)
   with open(f, "w") as json_file:
-    data[key]=key
+    data[nombre]=estructura
     json.dump(data, json_file, indent=4)
     json_file.close()
-    return True
 
 
 def removeLLave(f,llave):
