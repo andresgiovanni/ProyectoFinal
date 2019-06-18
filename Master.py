@@ -27,7 +27,6 @@ app = Flask(__name__)
 #un archivo vagranfile
 @app.route("/crearProyecto/<proyecto>")
 def crearProyecto(proyecto):
-   # output=RunCLI.runCommand("cat %s"%(config.VAGRANTSERVICEHOME))
     ruta= config.VAGRANTSERVICEHOME + proyecto   
     if os.path.isdir(ruta):
         manageBD.addProyecto(proyecto)
@@ -41,8 +40,6 @@ def crearProyecto(proyecto):
 #Metodo para consultar estado de un proyecto
 @app.route("/estadoProyecto/<proyecto>")
 def estadoProyecto(proyecto):
-#    ruta= config.VAGRANTSERVICEHOME + proyecto 
-#    if os.path.isdir(ruta):
     if manageBD.buscarProyecto(proyecto)==True:
         thread1= threading.Thread(target = opSlave.preguntarEstadoProyecto, args=(proyecto,config.VAGRANTSLAVE1))
         thread1.start()
