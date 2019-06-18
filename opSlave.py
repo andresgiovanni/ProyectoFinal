@@ -42,13 +42,9 @@ def enviarVM(proyecto,slave):
     comando="curl -F file=@" + config.VAGRANTSERVICEHOME + proyecto + "/Vagrantfile" + " http://" + slave + ":" + config.SLAVE1PORT +"/CrearProyecto/" + proyecto
     logger.warning('Ingresando a enviarVM')
     try:
-#        Cmd= "echo 'en ejecucion..:' " + comando + " >> " + config.MSGlog 
         logger.warning('Ejecutando..' + comando)
-#        myCmd = os.popen(Cmd).read()
         output=RunCLI.runCommand(comando)
-       
     except Exception as e:
-#        logger.warning(sys.exc_info()[1])
         logger.error(sys.exc_info()[1])
 
 
@@ -58,14 +54,11 @@ def preguntarEstadoProyecto(proyecto,slave):
     comando="curl http://" + slave + ":" + config.SLAVE1PORT + "/StatusProyecto/" + proyecto
     logger.warning('Ingresando a preguntarEstadoProyecto')
     try:
-#        Cmd= "echo 'en ejecucion..:' " + comando + " >> " + config.MSGlog 
-#        myCmd = os.popen(Cmd).read()
         logger.warning('Ejecutando..' + comando)
         output=RunCLI.runCommand(comando)
         opJson.escribirJson(config.MSGSlave,proyecto,output) 
 
     except Exception as e:
-#        logger.warning(sys.exc_info()[1])
         logger.error(sys.exc_info()[1])
 
 
