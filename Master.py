@@ -57,7 +57,7 @@ def borrarProyecto(proyecto):
         opSlave.enviarBorrarProyecto(proyecto,config.VAGRANTSLAVE1)
         while os.stat(config.MSGSlave).st_size == 0:
             time.sleep(5)
-# <PENDIENTE CREAR METODO PARA BORAR BD DEL MASTER      >     
+        manageBD.rmProyecto(proyecto)
         return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
         return jsonify("Error 400, el proyecto no existe")  
@@ -71,6 +71,7 @@ def levantarVM(proyecto,VM):
         while os.stat(config.MSGSlave).st_size == 0:
             time.sleep(5)
 # <PENDIENTE CREAR METODO PARA CAMBIAR ESTADO VM EN BD DEL MASTER      >     
+        
         return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
         return jsonify("Error 400, el proyecto no existe")  

@@ -45,10 +45,14 @@ def addLlave(f,estructura,nombre):
   if os.stat(f).st_size > 0:
     data = abrirArchivo(f)
 #  obj=json.loads(llave)
-  with open(f, "w") as json_file:
-    data[nombre]=estructura
-    json.dump(data, json_file, indent=4)
-    json_file.close()
+  if nombre not in data:
+    with open(f, "w") as json_file:
+      data[nombre]=estructura
+      json.dump(data, json_file, indent=4)
+      json_file.close()
+    return True
+  else:
+    return False
 
 #Metodo generico para remover key a un archivo json existente
 def removeLLave(f,llave):
@@ -81,7 +85,7 @@ def modElementoNivel1(f,llave,elemento,valor):
   data = {}
   data = abrirArchivo(f)
   if llave in data:
-    data[llave][0][elemento]=valor
+    data[llave][elemento]=valor
     with open(f, "w") as json_file:
       json.dump(data, json_file, indent=4)
       json_file.close()
@@ -94,7 +98,7 @@ def modElementoNivel2(f,llave,elemento1,elemento2,valor):
   data = {}
   data = abrirArchivo(f)
   if llave in data:
-    data[llave][0][elemento1][0][elemento2]=valor
+    data[llave][elemento1][elemento2]=valor
     with open(f, "w") as json_file:
       json.dump(data, json_file, indent=4)
       json_file.close()
