@@ -6,7 +6,7 @@ import threading
 import logging
 import sys
 import RunCLI
-import opJson, json
+import opJson, json, manageBD
 
 
 # Create a custom logger
@@ -57,7 +57,11 @@ def preguntarEstadoProyecto(proyecto,slave):
         logger.warning('Ejecutando..' + comando)
         output=RunCLI.runCommand(comando)
         opJson.escribirJson(config.MSGSlave,proyecto,output) 
-
+        #del mensaje del slave se saca la info del estado de cada virtual
+        data=opJson.abrirArchivo(config.MSGSlave)
+        if proyecto in data:
+            for VM,atributo in data[proyecto][0]["VMs"].items():
+                manageBD.modificarVM(proyecto,VM,"",atributo["Status"])
     except Exception as e:
         logger.error(sys.exc_info()[1])
 
@@ -87,3 +91,31 @@ def enviarLevantarVM(proyecto,VM,slave):
         opJson.escribirJson(config.MSGSlave,proyecto,output)       
     except Exception as e:
         logger.error(sys.exc_info()[1])        
+
+
+
+
+#Metodo de envio solicitud apagar VM de un proyecto al esclavo
+#comando="curl http://192.168.19.251:8000/ApagarVM/andres/VM" 
+def enviarApagarVM(proyecto,VM,slave):
+    comando="curl http://" + slave + ":" + config.SLAVE1PORT + "/ApagarVM/" + proyecto + "/" + VM
+    logger.warning('Ingresando a enviarApagarVM')
+    try:
+        logger.warning('Ejecutando..' + comando)
+        output=RunCLI.runCommand(comando)
+        opJson.escribirJson(config.MSGSlave,proyecto,output)       
+    except Exception as e:
+        logger.error(sys.exc_info()[1])   
+
+
+#Metodo de envio solicitud borrar VM de un proyecto al esclavo
+#comando="curl http://192.168.19.251:8000/ApagarVM/andres/VM" 
+def enviarBorrarVM(proyecto,VM,slave):
+    comando="curl http://" + slave + ":" + config.SLAVE1PORT + "/BorrarVM/" + proyecto + "/" + VM
+    logger.warning('Ingresando a enviarApagarVM')
+    try:
+        logger.warning('Ejecutando..' + comando)
+        output=RunCLI.runCommand(comando)
+        opJson.escribirJson(config.MSGSlave,proyecto,output)       
+    except Exception as e:
+        logger.error(sys.exc_info()[1])   

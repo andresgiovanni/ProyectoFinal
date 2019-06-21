@@ -28,6 +28,15 @@ def escribirJson(f,llave,obj):
     json_file.close()  
 
 
+def limpiarJson(f):
+  data={}
+  data = abrirArchivo(f)
+  for llave in data.keys():
+    del data[llave]
+  with open(f, "w") as json_file:
+    json.dump(data, json_file, indent=4)
+    json_file.close()
+    return True
 
 #Metodo generico para verificar que archivo json existente
 def verificarJson(ruta,f):
@@ -39,20 +48,7 @@ def verificarJson(ruta,f):
   else:
     return False    
 
-#Metodo generico para adicionar key a un archivo json existente
-def addLlave(f,estructura,nombre):
-  data = {}
-  if os.stat(f).st_size > 0:
-    data = abrirArchivo(f)
-#  obj=json.loads(llave)
-  if nombre not in data:
-    with open(f, "w") as json_file:
-      data[nombre]=estructura
-      json.dump(data, json_file, indent=4)
-      json_file.close()
-    return True
-  else:
-    return False
+
 
 #Metodo generico para remover key a un archivo json existente
 def removeLLave(f,llave):
@@ -77,6 +73,38 @@ def getElemento(f,llave,elemento):
             return True
         else:
             return False
+
+#Metodo generico para adicionar key a un archivo json existente
+def addLlave(f,estructura,nombre):
+  data = {}
+  if os.stat(f).st_size > 0:
+    data = abrirArchivo(f)
+  with open(f, "w") as json_file:
+  #  obj=json.loads(llave)
+    if nombre not in data:
+      data[nombre]=estructura
+      json.dump(data, json_file, indent=4)
+      json_file.close()
+    else:
+      data[nombre].update(estructura)
+      json.dump(data, json_file, indent=4)
+      json_file.close()
+    return True
+
+
+def modElemento(f,llave,estructura):
+  data = {}
+  if os.stat(f).st_size > 0:
+    data = abrirArchivo(f)
+  with open(f, "w") as json_file:
+  #  obj=json.loads(llave)
+    if llave not in data:
+      return False
+    else:
+      data[llave].update(estructura)
+      json.dump(data, json_file, indent=4)
+      json_file.close()
+      return True
 
 #Metodo Generico para modificar valor de un elemento de una key particular
 #Por ejemplo una key puede ser un proyecto y el elemento la ip del slave
