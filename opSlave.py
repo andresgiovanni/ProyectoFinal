@@ -44,6 +44,8 @@ def enviarVM(proyecto,slave):
     try:
         logger.warning('Ejecutando..' + comando)
         output=RunCLI.runCommand(comando)
+        opJson.escribirJson(config.MSGSlave,proyecto,output) 
+
     except Exception as e:
         logger.error(sys.exc_info()[1])
 

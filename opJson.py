@@ -13,8 +13,9 @@ def abrirArchivo(f):
 
 # Esta es una funcion mas generica que dado un diccionario y la llave entrega
 # el valor asociado a esa llave
-def leerLlave(j,key):
-  return j[key]
+def leerLlave(f,key):
+  data=abrirArchivo(f)
+  return data[key]
 
 
 

@@ -52,28 +52,28 @@ def crearProyecto(proyecto='default'):
         logger.warning('Ingresando a POST')
         try:
             logger.warning('Ingresando al try')
-            os.mkdir(ruta)
             f = request.files['file']
             filename = secure_filename(f.filename)
-            f.save(os.path.join(ruta, filename))
+            
+            if os.path.isdir(ruta)==False:
 
-            if os.path.isdir(ruta):
+                os.mkdir(ruta)
+                f.save(os.path.join(ruta, filename))
                 opJson.limpiarJson(config.MSGSlave)
                 thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,config.VAGRANTSLAVE1))
                 thread1.start()
-
-                while os.stat(config.MSGSlave).st_size == 0:
+                manageBD.addProyecto(proyecto) 
+                while os.stat(config.MSGSlave).st_size == 2:
                     time.sleep(5)
 
-                manageBD.addProyecto(proyecto) 
-
                 return  jsonify(opJson.abrirArchivo(config.MSGSlave))
+
             else:
-                return jsonify("Error 400, no se ha subido VagranFile")    
+                return jsonify("Error 400, Ya exite el proyecto")    
         except Exception as e:
             logger.error(sys.exc_info()[1])
     else:
-        return jsonify("Error 400, no se adjuntó VagranFile") 
+        return jsonify("Error 400, no se adjunto VagranFile") 
 
 
 #Metodo para consultar estado de un proyecto
@@ -84,7 +84,7 @@ def estadoProyecto(proyecto):
         thread2= threading.Thread(target = opSlave.preguntarEstadoProyecto, args=(proyecto,config.VAGRANTSLAVE1))
         thread2.start()
 #        thread2.join()
-        while os.stat(config.MSGSlave).st_size == 0:
+        while os.stat(config.MSGSlave).st_size == 2:
             time.sleep(3)
         while len(opJson.abrirArchivo(config.MSGSlave))==0:
             time.sleep(3)
@@ -95,7 +95,8 @@ def estadoProyecto(proyecto):
 #            for VM,atributo in data[proyecto][0]["VMs"].items():
 #                manageBD.modificarVM(proyecto,VM,"",atributo["Status"])
 
-        return jsonify(opJson.abrirArchivo(config.MSGSlave))
+        return jsonify(manageBD.getProyecto(proyecto))
+#        return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
         return jsonify("Error 400, el proyecto no existe")
 
@@ -108,13 +109,16 @@ def borrarProyecto(proyecto):
         thread3= threading.Thread(target = opSlave.enviarBorrarProyecto, args=(proyecto,config.VAGRANTSLAVE1))
         thread3.start()
 #        thread3.join()
-        while os.stat(config.MSGSlave).st_size == 0:
+        while os.stat(config.MSGSlave).st_size == 2:
             time.sleep(5)
 
         while len(opJson.abrirArchivo(config.MSGSlave))==0:
             time.sleep(3)
 
         manageBD.rmProyecto(proyecto)
+        ruta= config.VAGRANTSERVICEHOME + proyecto
+        os.remove( ruta + "/Vagrantfile" )
+        os.rmdir(ruta)
         return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
         return jsonify("Error 400, el proyecto no existe")  
@@ -129,8 +133,8 @@ def levantarVM(proyecto,VM):
         thread4= threading.Thread(target = opSlave.enviarLevantarVM, args=(proyecto,VM,config.VAGRANTSLAVE1))
         thread4.start()
 #        thread4.join()
-        while os.stat(config.MSGSlave).st_size == 0:
-            time.sleep(5)
+        while os.stat(config.MSGSlave).st_size == 2:
+            time.sleep(3)
 # <PENDIENTE CREAR METODO PARA CAMBIAR ESTADO VM EN BD DEL MASTER      >     
         while len(opJson.abrirArchivo(config.MSGSlave))==0:
             time.sleep(3)
@@ -149,7 +153,7 @@ def apagarVM(proyecto,VM):
         thread6= threading.Thread(target = opSlave.enviarApagarVM, args=(proyecto,VM,config.VAGRANTSLAVE1))
         thread6.start()
 #        thread6.join()
-        while os.stat(config.MSGSlave).st_size == 0:
+        while os.stat(config.MSGSlave).st_size == 2:
             time.sleep(5)
 # <PENDIENTE CREAR METODO PARA CAMBIAR ESTADO VM EN BD DEL MASTER      >        
         while len(opJson.abrirArchivo(config.MSGSlave))==0:
@@ -167,7 +171,7 @@ def borrarVM(proyecto,VM):
         thread7= threading.Thread(target = opSlave.enviarBorrarVM, args=(proyecto,VM,config.VAGRANTSLAVE1))
         thread7.start()
 #        thread7.join()
-        while os.stat(config.MSGSlave).st_size == 0:
+        while os.stat(config.MSGSlave).st_size == 2:
             time.sleep(5)
 # <PENDIENTE CREAR METODO PARA BORRAR  VM EN BD DEL MASTER      >   
         while len(opJson.abrirArchivo(config.MSGSlave))==0:

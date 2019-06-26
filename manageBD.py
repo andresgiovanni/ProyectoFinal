@@ -67,5 +67,14 @@ def rmProyecto(proyecto):
 
 
 
+def getProyecto(llave):
+    if os.path.isfile(config.BDProyectos) == True:
+        if buscarProyecto(llave):
+            data=opJson.leerLlave(config.BDProyectos,llave)
+            return data
+        else:
+            return "No existe el proyecto"
+            
+        
 
    
