@@ -1,15 +1,9 @@
 #!/usr/bin/env python
-from flask import Flask, jsonify, request
-import RunCLI
-import config
-import os
-import threading
-import logging
-import sys
-import opSlave
-import opJson
-import manageBD
-import time
+from flask import Flask, jsonify, request, render_template
+from werkzeug import secure_filename
+from shutil import rmtree
+import config, opSlave, opJson, manageBD
+import os, threading, logging, sys, time
 
 
 app = Flask(__name__)
@@ -21,25 +15,65 @@ app = Flask(__name__)
 #export FLASK_ENV=development
 #flask run
 
+# Create a custom logger
+logger = logging.getLogger(__name__)
+
+# Create handlers
+c_handler = logging.FileHandler(config.FILELOG)
+f_handler = logging.FileHandler(config.FILELOG)
 
 
-#Metodo para ordenar creacion de VM habiendo subido inicialmente
+c_handler.setLevel(logging.WARNING)
+f_handler.setLevel(logging.ERROR)
+
+
+# Create formatters and add it to handlers
+c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
+c_handler.setFormatter(c_format)
+f_handler.setFormatter(f_format)
+
+
+# Add handlers to the logger
+logger.addHandler(c_handler)
+logger.addHandler(f_handler)
+
+
+#Metodo para ordenar creacion de VM
 #un archivo vagranfile
-@app.route("/crearProyecto/<proyecto>")
-def crearProyecto(proyecto):
-    ruta= config.VAGRANTSERVICEHOME + proyecto   
-    if os.path.isdir(ruta):
-        opJson.limpiarJson(config.MSGSlave)
-        thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,config.VAGRANTSLAVE1))
-        thread1.start()
-#        thread1.join()
-        while os.stat(config.MSGSlave).st_size == 0:
-            time.sleep(5)
+#curl -F 'file=@/home/admred/Documentos/Vagrantfile' http://127.0.0.1:5000/CrearProyecto/Lili
+@app.route('/crearProyecto', methods=['POST'])
+@app.route("/crearProyecto/<proyecto>", methods=['POST'])
+def crearProyecto(proyecto='default'):
+    ruta= config.VAGRANTSERVICEHOME + proyecto  
+    if request.method == 'POST': 
+        logger.warning('Ingresando a POST')
+        try:
+            logger.warning('Ingresando al try')
+            os.mkdir(ruta)
+            f = request.files['file']
+            filename = secure_filename(f.filename)
+            f.save(os.path.join(ruta, filename))
 
-        manageBD.addProyecto(proyecto)    
-        return  jsonify(opJson.abrirArchivo(config.MSGSlave))
+            if os.path.isdir(ruta):
+                opJson.limpiarJson(config.MSGSlave)
+                thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,config.VAGRANTSLAVE1))
+                thread1.start()
+
+                while os.stat(config.MSGSlave).st_size == 0:
+                    time.sleep(5)
+
+                manageBD.addProyecto(proyecto) 
+
+                return  jsonify(opJson.abrirArchivo(config.MSGSlave))
+            else:
+                return jsonify("Error 400, no se ha subido VagranFile")    
+        except Exception as e:
+            logger.error(sys.exc_info()[1])
     else:
-        return jsonify("Error 400, no se ha subido VagranFile")    
+        return jsonify("Error 400, no se adjuntó VagranFile") 
 
 
 #Metodo para consultar estado de un proyecto
