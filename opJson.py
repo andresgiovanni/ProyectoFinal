@@ -1,21 +1,55 @@
 #!/usr/bin/env python
 
-import json
-import os, logging
+import json, config
+import os, logging, threading, sys
+
+
+# Create a custom logger
+logger = logging.getLogger(__name__)
+
+# Create handlers
+c_handler = logging.FileHandler(config.FILELOG)
+f_handler = logging.FileHandler(config.FILELOG)
+
+
+c_handler.setLevel(logging.WARNING)
+f_handler.setLevel(logging.ERROR)
+
+
+# Create formatters and add it to handlers
+c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+
+c_handler.setFormatter(c_format)
+f_handler.setFormatter(f_format)
+
+
+# Add handlers to the logger
+logger.addHandler(c_handler)
+logger.addHandler(f_handler)
 
 
 # Este metodo recibe un nombre de archivo y devuelve un diccionario que contiene
 # informacion asociada a un archivo JSON
 def abrirArchivo(f):
-  with open(f,"r") as json_file:
-    return json.load(json_file)
+  try:
+    with open(f,"r") as json_file:
+      return json.load(json_file)
+  except Exception as e:
+    logger.error(sys.exc_info()[1])
 
 
 # Esta es una funcion mas generica que dado un diccionario y la llave entrega
 # el valor asociado a esa llave
 def leerLlave(f,key):
   data=abrirArchivo(f)
-  return data[key]
+  if key in data.keys():
+    return data[key]
+  else:
+    data={}
+    return data
+  
 
 
 
@@ -86,11 +120,14 @@ def addLlave(f,estructura,nombre):
       data[nombre]=estructura
       json.dump(data, json_file, indent=4)
       json_file.close()
+      return True
     else:
+      logger.warning('ingresando a addLLave')
       data[nombre].update(estructura)
       json.dump(data, json_file, indent=4)
       json_file.close()
-    return True
+      return True
+
 
 
 def modElemento(f,llave,estructura):

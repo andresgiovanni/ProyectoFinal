@@ -49,27 +49,26 @@ logger.addHandler(f_handler)
 def crearProyecto(proyecto='default'):
     ruta= config.VAGRANTSERVICEHOME + proyecto  
     if request.method == 'POST': 
-        logger.warning('Ingresando a POST')
         try:
-            logger.warning('Ingresando al try')
             f = request.files['file']
-            filename = secure_filename(f.filename)
-            
-            if os.path.isdir(ruta)==False:
+            filename = secure_filename (f.filename )
+            SLAVE=manageBD.seleccionarSlave()
+            if SLAVE:
+                if os.path.isdir( ruta )==False:
+                    os.mkdir( ruta )
+                    f.save(os.path.join( ruta, filename ))
+                    opJson.limpiarJson( config.MSGSlave )
+                    thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,SLAVE['IP']))
+                    thread1.start()
+                    manageBD.addProyecto( proyecto, SLAVE['id'] ) 
+                    while os.stat( config.MSGSlave ).st_size == 2:
+                        time.sleep(5)
 
-                os.mkdir(ruta)
-                f.save(os.path.join(ruta, filename))
-                opJson.limpiarJson(config.MSGSlave)
-                thread1= threading.Thread(target = opSlave.enviarVM, args=(proyecto,config.VAGRANTSLAVE1))
-                thread1.start()
-                manageBD.addProyecto(proyecto) 
-                while os.stat(config.MSGSlave).st_size == 2:
-                    time.sleep(5)
+                    return  jsonify(opJson.abrirArchivo( config.MSGSlave ))
 
-                return  jsonify(opJson.abrirArchivo(config.MSGSlave))
-
-            else:
-                return jsonify("Error 400, Ya exite el proyecto")    
+                else:
+                    return jsonify("Error 400, Ya exite el proyecto")    
+            return jsonify("No hay host disponibles para crear el proyecto")
         except Exception as e:
             logger.error(sys.exc_info()[1])
     else:
@@ -78,35 +77,34 @@ def crearProyecto(proyecto='default'):
 
 #Metodo para consultar estado de un proyecto
 @app.route("/estadoProyecto/<proyecto>")
-def estadoProyecto(proyecto):
-    if manageBD.buscarProyecto(proyecto)==True:
-        opJson.limpiarJson(config.MSGSlave)
-        thread2= threading.Thread(target = opSlave.preguntarEstadoProyecto, args=(proyecto,config.VAGRANTSLAVE1))
+def estadoProyecto( proyecto ):
+    data={}
+    data=manageBD.getProyecto( proyecto )
+#    if manageBD.buscarProyecto(proyecto)==True:
+    if data:
+        opJson.limpiarJson( config.MSGSlave )
+        thread2= threading.Thread( target = opSlave.preguntarEstadoProyecto, args=( proyecto, data['SLAVE'] ) )
         thread2.start()
 #        thread2.join()
-        while os.stat(config.MSGSlave).st_size == 2:
-            time.sleep(3)
-        while len(opJson.abrirArchivo(config.MSGSlave))==0:
-            time.sleep(3)
+        while os.stat( config.MSGSlave ).st_size == 2:
+            time.sleep( 3 )
+        while len(opJson.abrirArchivo( config.MSGSlave ) )==0:
+            time.sleep( 3 )
 
-#del mensaje del slave se saca la info del estado de cada virtual
-#        data=opJson.abrirArchivo(config.MSGSlave)
-#        if proyecto in data:
-#            for VM,atributo in data[proyecto][0]["VMs"].items():
-#                manageBD.modificarVM(proyecto,VM,"",atributo["Status"])
-
-        return jsonify(manageBD.getProyecto(proyecto))
+        return jsonify( manageBD.getProyecto( proyecto ) )
 #        return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
-        return jsonify("Error 400, el proyecto no existe")
+        return jsonify( "Error 400, el proyecto no existe" )
 
 
 #Metodo para Borrar un proyecto
 @app.route("/borrarProyecto/<proyecto>")
-def borrarProyecto(proyecto):
-    if manageBD.buscarProyecto(proyecto)==True:
-        opJson.limpiarJson(config.MSGSlave)
-        thread3= threading.Thread(target = opSlave.enviarBorrarProyecto, args=(proyecto,config.VAGRANTSLAVE1))
+def borrarProyecto( proyecto ):
+    data={}
+    data=manageBD.getProyecto( proyecto )
+    if data:
+        opJson.limpiarJson( config.MSGSlave )
+        thread3= threading.Thread( target = opSlave.enviarBorrarProyecto, args=( proyecto,data['SLAVE'] ) )
         thread3.start()
 #        thread3.join()
         while os.stat(config.MSGSlave).st_size == 2:
@@ -115,67 +113,97 @@ def borrarProyecto(proyecto):
         while len(opJson.abrirArchivo(config.MSGSlave))==0:
             time.sleep(3)
 
-        manageBD.rmProyecto(proyecto)
+        manageBD.rmProyecto( proyecto, data['SLAVE'] )
         ruta= config.VAGRANTSERVICEHOME + proyecto
         os.remove( ruta + "/Vagrantfile" )
         os.rmdir(ruta)
         return jsonify(opJson.abrirArchivo(config.MSGSlave))
     else:
-        return jsonify("Error 400, el proyecto no existe")  
+        return jsonify( "Error 400, el proyecto no existe" )  
 
 
 #Metodo para LEVANTAR  una VM de un proyecto
 @app.route("/levantarVM/<proyecto>/<VM>")
-def levantarVM(proyecto,VM):
-    if manageBD.buscarProyecto(proyecto)==True:
-        opJson.limpiarJson(config.MSGSlave)
-#        opSlave.enviarLevantarVM(proyecto,VM,config.VAGRANTSLAVE1)
-        thread4= threading.Thread(target = opSlave.enviarLevantarVM, args=(proyecto,VM,config.VAGRANTSLAVE1))
+def levantarVM( proyecto, VM ):
+    data={}
+    data=manageBD.getProyecto( proyecto )    
+    if data:
+        opJson.limpiarJson( config.MSGSlave )
+        thread4= threading.Thread( target = opSlave.enviarLevantarVM, args=( proyecto, VM, data['SLAVE'] ) )
         thread4.start()
 #        thread4.join()
-        while os.stat(config.MSGSlave).st_size == 2:
-            time.sleep(3)
+        while os.stat( config.MSGSlave ).st_size == 2:
+            time.sleep( 3 )
 # <PENDIENTE CREAR METODO PARA CAMBIAR ESTADO VM EN BD DEL MASTER      >     
-        while len(opJson.abrirArchivo(config.MSGSlave))==0:
+        while len( opJson.abrirArchivo( config.MSGSlave ) )==0:
             time.sleep(3)
-        manageBD.addVM(proyecto,VM)
-        return jsonify(opJson.abrirArchivo(config.MSGSlave))
+        manageBD.addVM( proyecto, VM,  data['SLAVE'] )
+        return jsonify( opJson.abrirArchivo( config.MSGSlave ) )
     else:
-        return jsonify("Error 400, el proyecto no existe")  
+        return jsonify( "Error 400, el proyecto no existe" )  
 
 
 
 #Metodo para Apagar un VM
 @app.route("/apagarVM/<proyecto>/<VM>")
-def apagarVM(proyecto,VM):
-    if manageBD.buscarProyecto(proyecto)==True:
-        opJson.limpiarJson(config.MSGSlave)
-        thread6= threading.Thread(target = opSlave.enviarApagarVM, args=(proyecto,VM,config.VAGRANTSLAVE1))
+def apagarVM( proyecto, VM ):
+    data={}
+    data=manageBD.getProyecto( proyecto )    
+    if data:
+        opJson.limpiarJson( config.MSGSlave )
+        thread6= threading.Thread( target = opSlave.enviarApagarVM, args=( proyecto, VM, data['SLAVE'] ) )
         thread6.start()
 #        thread6.join()
-        while os.stat(config.MSGSlave).st_size == 2:
-            time.sleep(5)
+        while os.stat( config.MSGSlave ).st_size == 2:
+            time.sleep( 5 )
 # <PENDIENTE CREAR METODO PARA CAMBIAR ESTADO VM EN BD DEL MASTER      >        
-        while len(opJson.abrirArchivo(config.MSGSlave))==0:
-            time.sleep(3)
-        return jsonify(opJson.abrirArchivo(config.MSGSlave))
+        while len(opJson.abrirArchivo( config.MSGSlave ) )==0:
+            time.sleep( 3 )
+        return jsonify( opJson.abrirArchivo( config.MSGSlave ) )
     else:
-        return jsonify("Error 400, el proyecto no existe")  
+        return jsonify( "Error 400, el proyecto no existe" )  
 
 
 #Metodo para Borrar un VM
 @app.route("/borrarVM/<proyecto>/<VM>")
-def borrarVM(proyecto,VM):
-    if manageBD.buscarProyecto(proyecto)==True:
-        opJson.limpiarJson(config.MSGSlave)
-        thread7= threading.Thread(target = opSlave.enviarBorrarVM, args=(proyecto,VM,config.VAGRANTSLAVE1))
+def borrarVM( proyecto, VM ):
+    data={}
+    data=manageBD.getProyecto( proyecto )
+    if data:
+        opJson.limpiarJson( config.MSGSlave )
+        thread7= threading.Thread( target = opSlave.enviarBorrarVM, args=( proyecto, VM, data['SLAVE'] ) )
         thread7.start()
 #        thread7.join()
-        while os.stat(config.MSGSlave).st_size == 2:
-            time.sleep(5)
+        while os.stat( config.MSGSlave ).st_size == 2:
+            time.sleep( 5 )
 # <PENDIENTE CREAR METODO PARA BORRAR  VM EN BD DEL MASTER      >   
-        while len(opJson.abrirArchivo(config.MSGSlave))==0:
-            time.sleep(3)     
-        return jsonify(opJson.abrirArchivo(config.MSGSlave))
+        while len(opJson.abrirArchivo( config.MSGSlave ) )==0:
+            time.sleep( 3 )     
+        return jsonify( opJson.abrirArchivo( config.MSGSlave ) )
     else:
-        return jsonify("Error 400, el proyecto no existe") 
+        return jsonify( "Error 400, el proyecto no existe" ) 
+
+
+
+#Metodo para registrar Slave en BD maestro
+#curl -H "Content-Type: application/json" -X POST -d '{"name": "slavePrueba1", "port": 8000, "mem": 5000 }'  http://localhost:5000/registrarSlave
+@app.route("/registrarSlave", methods=["POST"])
+def registrarSlave(  ):
+    IP = str(request.remote_addr)
+    try:
+        content = request.json
+        name = str(content['name'])
+        port = content['port']
+        mem = content['mem']
+
+        if name and port and mem:
+            logger.warning('Ingresando a regisrar SLAVE: ' + name)
+            if manageBD.addSlave( IP, name, mem, port ):
+                return jsonify( "se ha registrado correctamente")
+        else:
+            return jsonify( "parametros post invalidos")
+    except Exception as e:
+        logger.error(sys.exc_info()[1])
+        
+
+
