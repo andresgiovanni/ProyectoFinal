@@ -44,19 +44,19 @@ def abrirArchivo(f):
 # el valor asociado a esa llave
 def leerLlave(f,key):
   data=abrirArchivo(f)
-  if key in data.keys():
-    return data[key]
-  else:
-    data={}
-    return data
+  try:
+    if key in data.keys():
+      return data[key]
+    else:
+      data={}
+      return data
+  except Exception as e:
+    logger.error(sys.exc_info()[1])
   
-
-
 
 #Metodo generico para escribir en archivo Json una estructura en formato JSON
 def escribirJson(f,llave,obj):
   data = {}
-  logging.warning(obj)
   with open(f, "w") as json_file:
     data[llave]=json.loads(obj)
     json.dump(data, json_file, indent=4)
@@ -65,13 +65,19 @@ def escribirJson(f,llave,obj):
 
 def limpiarJson(f):
   data={}
-  data = abrirArchivo(f)
-  for llave in data.keys():
-    del data[llave]
-  with open(f, "w") as json_file:
-    json.dump(data, json_file, indent=4)
-    json_file.close()
-    return True
+  try:
+    data = abrirArchivo(f)
+    for llave in data.keys():
+      del data[llave]
+    with open(f, "w") as json_file:
+      json.dump(data, json_file, indent=4)
+      json_file.close()
+      return True
+  except Exception as e:
+    logger.error(sys.exc_info()[1])
+    escribirJson(f,'master','{}')
+    limpiarJson(f)
+
 
 #Metodo generico para verificar que archivo json existente
 def verificarJson(ruta,f):
@@ -115,7 +121,6 @@ def addLlave(f,estructura,nombre):
   if os.stat(f).st_size > 0:
     data = abrirArchivo(f)
   with open(f, "w") as json_file:
-  #  obj=json.loads(llave)
     if nombre not in data:
       data[nombre]=estructura
       json.dump(data, json_file, indent=4)
@@ -139,6 +144,7 @@ def modElemento(f,llave,estructura):
     if llave not in data:
       return False
     else:
+      logger.warning('Modificando Elemento Json..')
       data[llave].update(estructura)
       json.dump(data, json_file, indent=4)
       json_file.close()

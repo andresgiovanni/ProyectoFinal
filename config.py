@@ -1,8 +1,9 @@
-VAGRANTSERVICEHOME = "/home/admred/Proyecto/vagrant/"
-VAGRANTSLAVE1="127.0.0.1"
-SLAVE1PORT="8000"
+import os
+
+VAGRANTSERVICEHOME = os.environ["HOME"] + "/Proyecto/vagrant/"
 FILELOG="file.log"
 MSGlog="message.log"
 BDProyectos="BDProyectos.json"
 BDSlave="BDSlave.json"
 MSGSlave="msgSlave.json"
+MSGSlaveStatus="msgSlaveStatus.json"

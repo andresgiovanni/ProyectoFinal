@@ -77,14 +77,14 @@ def addVM(proyecto,VM, slave):
         return False
 
 
-def modificarVM(proyecto,VM,IP,STATUS):
+def modificarVM(proyecto,VM,obj):
     estructura={}
-    if not IP:
-        IP=""
-    if not STATUS:
-        STATUS="not created"
+#    if not IP:
+#        IP=""
+#    if not STATUS:
+#        STATUS="not created"
     if os.path.isfile(config.BDProyectos) == True:
-        estructura={VM: {"IP": IP, "STATUS": STATUS}}
+        estructura['VMs']={VM: obj}
         if opJson.modElemento(config.BDProyectos,proyecto,estructura):
            return True
         else:
@@ -93,7 +93,7 @@ def modificarVM(proyecto,VM,IP,STATUS):
     else:
         return False
 
-def buscarProyecto(llave):
+def existeProyecto(llave):
     if os.path.isfile(config.BDProyectos) == True:
         data=opJson.abrirArchivo(config.BDProyectos)
         if llave in data.keys():
@@ -104,12 +104,23 @@ def buscarProyecto(llave):
 def getProyecto(llave):
     data={}
     if os.path.isfile(config.BDProyectos) == True:
-        if buscarProyecto(llave):
+        if existeProyecto(llave):
             data=opJson.leerLlave(config.BDProyectos,llave)
             return data
         else:
             return data
 
+def modificarSlaveRAM(slave,RAM):
+    if os.path.isfile(config.BDSlave) == True:
+       data=opJson.leerLlave(config.BDSlave,slave)
+       if data:
+            data['MemLibre']=int(RAM)
+            if opJson.addLlave( config.BDSlave, data, slave ):
+                return True
+            else:
+                return False
+       else:
+            return False
 
 
 #Metodo para seleccionar slave al que se le asignara
@@ -117,14 +128,16 @@ def getProyecto(llave):
 def seleccionarSlave():
     slave={}
     memoria=0
+    cantProyecto=4
     Proyectos=0
     if os.path.isfile( config.BDSlave ) == True:
         data=opJson.abrirArchivo( config.BDSlave )
         for key,estructura in data.items():
             if estructura and 'MemLibre' in estructura.keys():
-                if estructura['MemLibre'] > memoria:
+                if estructura['MemLibre'] > memoria and estructura['Proyectos'] <= cantProyecto:
                     memoria=estructura['MemLibre']
-                    slave={ "id": key, "IP": estructura['IP']}
+                    cantProyecto=estructura['Proyectos']
+                    slave={ "id": key, "IP": estructura['IP'], "Port": estructura["Port"]}
         return slave
     return slave
    
@@ -144,18 +157,19 @@ def addSlave( slave, name, mem, port ):
 
 
 def buscarSlave(llave):
+    data={}
     if os.path.isfile(config.BDSlave) == True:
-        data=opJson.abrirArchivo(config.BDSlave)
-        if llave in data.keys():
-            return True
-        else:
-            return False
+        data=opJson.leerLlave(config.BDSlave,llave)
+        return data
+    else:
+        return data
+
 
 #Metodo para obtener la ip del slave, recibe el id del slave
 def getIpSlave(slave):
     data={}
     if os.path.isfile(config.BDSlave) == True:
-        if buscarProyecto(llave):        
+        if existeProyecto(llave):        
             data=opJson.leerLlave(config.BDSlave, slave )
             return data['IP']
         else:
