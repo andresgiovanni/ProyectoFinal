@@ -54,7 +54,7 @@ def enviarVM(proyecto,slave,port):
 #Metodo de envio consulta de estado proyecto al esclavo
 #comando="curl http://192.168.19.251:8000/StatusProyecto/andres" 
 def preguntarEstadoProyecto(proyecto,slave, port):
-    comando="curl http://" + slave + ":" + str(port) + "/StatusProyecto/" + proyecto
+    comando="curl http://" + slave + ":" + str(port) + "/StatusProyect/" + proyecto
     logger.warning('Ingresando a preguntarEstadoProyecto')
     try:
         logger.warning('Ejecutando..' + comando)
