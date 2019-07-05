@@ -1,3 +1,6 @@
+#Script principal del programa
+#Se definien las URI disponibles
+
 #!/usr/bin/env python
 from flask import Flask, jsonify, request, render_template
 from werkzeug import secure_filename
@@ -41,9 +44,8 @@ logger.addHandler(c_handler)
 logger.addHandler(f_handler)
 
 
-#Metodo para ordenar creacion de VM
-#un archivo vagranfile
-#curl -F 'file=@/home/admred/Documentos/Vagrantfile' http://127.0.0.1:5000/CrearProyecto/Lili
+#Metodo para ordenar creacion de VM un archivo vagranfile
+#Ejemplo de uso: curl -F 'file=@/home/admred/Documentos/Vagrantfile' http://127.0.0.1:5000/CrearProyecto/Lili
 @app.route('/crearProyecto', methods=['POST'])
 @app.route("/crearProyecto/<proyecto>", methods=['POST'])
 def crearProyecto(proyecto='default'):
@@ -190,7 +192,7 @@ def borrarVM( proyecto, VM ):
 
 
 #Metodo para registrar Slave en BD maestro
-#curl -H "Content-Type: application/json" -X POST -d '{"name": "slavePrueba1", "port": 8000, "mem": 5000 }'  http://localhost:5000/registrarSlave
+#Ejemplo de uso:  curl -H "Content-Type: application/json" -X POST -d '{"name": "slavePrueba1", "port": 8000, "mem": 5000 }'  http://localhost:5000/registrarSlave
 @app.route("/registrarSlave", methods=["POST"])
 def registrarSlave(  ):
     IP = str(request.remote_addr)
