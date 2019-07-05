@@ -1,3 +1,6 @@
+#Libreria en la que se definien metodos o fuciones
+#que emplean webservice de un host tipo SLAVE
+
 #!/usr/bin/env python
 
 import config
@@ -126,7 +129,7 @@ def enviarBorrarVM(proyecto,VM,slave, port):
         logger.error(sys.exc_info()[1])   
 
 
-
+#Metodo de consulta creacion Proyecto a esclavo
 def consultarSlaveRAM():
     if os.path.isfile( config.BDSlave ) == True:
         try:
