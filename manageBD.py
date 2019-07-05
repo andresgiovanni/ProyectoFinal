@@ -1,3 +1,5 @@
+#Libreria con Métodos para gestión de BD
+
 import opJson
 import config
 import os
@@ -31,6 +33,8 @@ f_handler.setFormatter(f_format)
 logger.addHandler(c_handler)
 logger.addHandler(f_handler)
 
+#Metodo usado para adicionar proyecto a la BD
+#
 def addProyecto(proyecto, slave):
     estructura = {}
     if os.path.isfile(config.BDProyectos) == True:
@@ -50,7 +54,7 @@ def addProyecto(proyecto, slave):
     else:
         return False
 
-
+#Metodo usado para borrar un proyecto de la BD
 def rmProyecto(proyecto, slave):
     llave=proyecto
     if opJson.removeLLave(config.BDProyectos,llave):
@@ -63,7 +67,7 @@ def rmProyecto(proyecto, slave):
     else:
         return False
 
-
+#Metodo usado para modificar la BD, adicionando VM a un proyecto
 def addVM(proyecto,VM, slave):
     estructura = {}
     if os.path.isfile(config.BDProyectos) == True:
@@ -76,7 +80,8 @@ def addVM(proyecto,VM, slave):
     else:
         return False
 
-
+#Metodo usado para modificar la BD, modifica atributos VM de un proyecto
+#parametros obj corresponde a los atributos en formato JSON que se adicionaran
 def modificarVM(proyecto,VM,obj):
     estructura={}
 #    if not IP:
@@ -93,6 +98,8 @@ def modificarVM(proyecto,VM,obj):
     else:
         return False
 
+#Metodo para consultar si existe proyecto en la BD
+#parametro llave corresponde al nombre del proyecto
 def existeProyecto(llave):
     if os.path.isfile(config.BDProyectos) == True:
         data=opJson.abrirArchivo(config.BDProyectos)
@@ -101,6 +108,8 @@ def existeProyecto(llave):
         else:
             return False
 
+#Metodo que devuelve atributos de un proyecto almancenado en BD
+#parametro llave corresponde al nombre del proyecto
 def getProyecto(llave):
     data={}
     if os.path.isfile(config.BDProyectos) == True:
@@ -110,6 +119,7 @@ def getProyecto(llave):
         else:
             return data
 
+#Metodo usado para modificar la BD, modifica atributos RAM de un host tipo Slave  
 def modificarSlaveRAM(slave,RAM):
     if os.path.isfile(config.BDSlave) == True:
        data=opJson.leerLlave(config.BDSlave,slave)
@@ -124,7 +134,8 @@ def modificarSlaveRAM(slave,RAM):
 
 
 #Metodo para seleccionar slave al que se le asignara
-# un proyecto. La seleccion se realiza basado en Memoria        
+# un proyecto. La seleccion se realiza basado en Memoria  y cantidad
+#de proyecto =4
 def seleccionarSlave():
     slave={}
     memoria=0
@@ -142,7 +153,7 @@ def seleccionarSlave():
     return slave
    
 
-
+#Metodo para adicionar a la BD un host tipo SLAVE
 def addSlave( slave, name, mem, port ):
     #estructura = {}
     if os.path.isfile( config.BDSlave ) == True:
@@ -155,7 +166,7 @@ def addSlave( slave, name, mem, port ):
     else:
         return False
 
-
+#Metodo para retornar un host tipo slave de la BD
 def buscarSlave(llave):
     data={}
     if os.path.isfile(config.BDSlave) == True:
