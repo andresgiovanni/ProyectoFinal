@@ -1,3 +1,5 @@
+#Libreria con metodos para modificar archivos tipo JSON
+
 #!/usr/bin/env python
 
 import json, config
@@ -62,7 +64,7 @@ def escribirJson(f,llave,obj):
     json.dump(data, json_file, indent=4)
     json_file.close()  
 
-
+#Metodo para borrar contenido
 def limpiarJson(f):
   data={}
   try:
@@ -91,7 +93,7 @@ def verificarJson(ruta,f):
 
 
 
-#Metodo generico para remover key a un archivo json existente
+#Metodo generico para remover llave a un archivo json existente
 def removeLLave(f,llave):
   data = {}
   data = abrirArchivo(f)
@@ -134,7 +136,7 @@ def addLlave(f,estructura,nombre):
       return True
 
 
-
+#Metodo para modificar atributos de una llave en archivo JSON
 def modElemento(f,llave,estructura):
   data = {}
   if os.stat(f).st_size > 0:
